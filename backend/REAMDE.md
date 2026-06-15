@@ -1,8 +1,19 @@
-# Supplier Quote Comparison Tool
+# Supplier Quote Comparison Tool - Backend
 
-A full-stack take-home assignment backend built with FastAPI and PostgreSQL.
+## Overview
 
-## Tech Stack
+This project provides a REST API for managing **Request for Quotations (RFQs)** and **Supplier Quotes**. It is built using **FastAPI**, **SQLAlchemy**, and **PostgreSQL**.
+
+The application allows users to:
+
+* Create and manage RFQs
+* Add supplier quotations for an RFQ
+* Compare supplier quotes
+* Import supplier quotes from CSV files
+
+---
+
+## Technology Stack
 
 * Python 3.13
 * FastAPI
@@ -10,34 +21,7 @@ A full-stack take-home assignment backend built with FastAPI and PostgreSQL.
 * PostgreSQL
 * Pydantic v2
 * uv
-
----
-
-## Features
-
-* Create RFQs
-
-* Update RFQs
-
-* Delete RFQs
-
-* List RFQs
-
-* Add supplier quotes
-
-* Update supplier quotes
-
-* Delete supplier quotes
-
-* Compare supplier quotes
-
-* Automatically calculate:
-
-```
-Total Price = Unit Price × RFQ Quantity
-```
-
-* CSV import for supplier quotes
+* Docker
 
 ---
 
@@ -46,38 +30,77 @@ Total Price = Unit Price × RFQ Quantity
 ```
 backend/
 
-app/
-    core/
-    features/
-        rfq/
-        quote/
-
-tests/
+├── app/
+│   ├── core/
+│   ├── features/
+│   │   ├── rfq/
+│   │   └── quote/
+│   ├── utils/
+│   └── main.py
+│
+├── tests/
+├── Dockerfile
+├── pyproject.toml
+└── README.md
 ```
 
 ---
 
-## Setup
+## Running Locally
 
-Create a virtual environment and install dependencies:
+### 1. Create a virtual environment
 
 ```bash
 uv sync
 ```
 
-Create a `.env` file:
+### 2. Create a `.env` file
+
+```env
+DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5433/supplier_quote_db
+```
+
+### 3. Start PostgreSQL
+
+If you already have PostgreSQL installed locally, ensure that the server is running and create a database named:
 
 ```
-DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/supplier_quote_db
+supplier_quote_db 
 ```
 
-Start the server:
+Alternatively, you can start PostgreSQL using Docker:
+
+```
+docker run --name supplier-quote-postgres-local -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=supplier_quote_db -p 5433:5433 -d postgres:17
+```
+
+### 4. Start the application
 
 ```bash
-uvicorn app.main:app --reload
+uv run uvicorn app.main:app --reload
 ```
 
-> Database tables are created automatically on application startup using **SQLAlchemy metadata** (`Base.metadata.create_all`).
+The API will be available at:
+
+```
+http://localhost:8000
+```
+
+Swagger documentation:
+
+```
+http://localhost:8000/docs
+```
+
+---
+
+## Database
+
+The application uses PostgreSQL.
+
+Tables are created automatically on startup using SQLAlchemy metadata.
+
+No migration tool is currently configured.
 
 ---
 
@@ -85,69 +108,78 @@ uvicorn app.main:app --reload
 
 ### RFQs
 
-```
-GET    /rfqs
+| Method | Endpoint     | Description           |
+| ------ | ------------ | --------------------- |
+| GET    | `/rfqs`      | Retrieve all RFQs     |
+| POST   | `/rfqs`      | Create a new RFQ      |
+| GET    | `/rfqs/{id}` | Retrieve a single RFQ |
+| PUT    | `/rfqs/{id}` | Update an RFQ         |
+| DELETE | `/rfqs/{id}` | Delete an RFQ         |
 
-POST   /rfqs
+---
 
-GET    /rfqs/{id}
+### Supplier Quotes
 
-PUT    /rfqs/{id}
+| Method | Endpoint            | Description                |
+| ------ | ------------------- | -------------------------- |
+| GET    | `/rfqs/{id}/quotes` | Retrieve quotes for an RFQ |
+| POST   | `/rfqs/{id}/quotes` | Create a supplier quote    |
+| PUT    | `/quotes/{id}`      | Update a supplier quote    |
+| DELETE | `/quotes/{id}`      | Delete a supplier quote    |
 
-DELETE /rfqs/{id}
-```
-
-### Quotes
-
-```
-GET    /rfqs/{id}/quotes
-
-POST   /rfqs/{id}/quotes
-
-PUT    /quotes/{id}
-
-DELETE /quotes/{id}
-```
+---
 
 ### CSV Import
 
-```
-POST /rfqs/{id}/quotes/import-csv
-```
+| Method | Endpoint                       | Description                            |
+| ------ | ------------------------------ | -------------------------------------- |
+| POST   | `/rfqs/{id}/quotes/import-csv` | Import supplier quotes from a CSV file |
 
 ---
 
 ## CSV Format
 
-```
+The uploaded CSV should contain the following columns:
+
+```csv
 supplier_name,unit_price,currency,lead_time,payment_terms,remarks
-
 ABC Metals,10.50,USD,7,Net 30,High quality
-
-XYZ Industries,9.75,USD,10,Advance,Fast delivery
+XYZ Industries,9.75,USD,10,Advance Payment,Fast delivery
 ```
+
+---
+
+## Testing
+
+Run all tests:
+
+```bash
+uv run pytest
+```
+
+---
+
+## Key Features
+
+* RFQ CRUD operations
+* Supplier Quote CRUD operations
+* CSV import support
+* Automatic quote comparison based on total price
+* Input validation using Pydantic
+* Modular feature-based project structure
+* Docker support
+* Unit tests with pytest
 
 ---
 
 ## Assumptions
 
-* Authentication is intentionally omitted.
-* Single procurement user.
-* Suppliers do not log in to the system.
-* Currency conversion is out of scope.
-* Lowest quote is determined using total price.
-* Total price is calculated dynamically instead of being stored.
+* Authentication and authorization are not implemented.
+* The application is intended for a single procurement user.
+* Suppliers do not log in directly.
+* Currency conversion is not implemented.
+* Quote comparison is based on the calculated total price using:
 
----
-
-## Future Improvements
-
-* Authentication and authorization
-* Multi-user support
-* Currency conversion
-* Pagination
-* Search and filtering
-* Soft deletes
-* Audit logs
-* Docker support
-* Unit and integration tests
+```
+Total Price = Unit Price × RFQ Quantity
+```

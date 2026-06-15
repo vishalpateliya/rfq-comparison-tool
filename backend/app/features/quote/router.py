@@ -1,3 +1,8 @@
+from fastapi import File
+from fastapi import UploadFile
+
+from app.features.quote.csv_service import CSVImportService
+
 from typing import Annotated
 
 from fastapi import APIRouter
@@ -77,6 +82,22 @@ def create_quote(
 
     return build_quote_response(
         quote,
+    )
+
+
+@router.post(
+    "/rfqs/{rfq_id}/quotes/import-csv",
+    status_code=200,
+)
+async def import_quotes_csv(
+    rfq_id: int,
+    db: DBSession,
+    file: UploadFile = File(...),
+):
+    return await CSVImportService.import_quotes(
+        db=db,
+        rfq_id=rfq_id,
+        file=file,
     )
 
 

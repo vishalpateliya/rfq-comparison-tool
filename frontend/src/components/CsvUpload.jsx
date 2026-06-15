@@ -12,9 +12,23 @@ function CsvUpload({ onUpload, isUploading = false }) {
 
   const handleDrop = (e) => {
     e.preventDefault();
+    e.stopPropagation();
+
     setDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file && file.name.endsWith(".csv")) {
+
+    const files = e.dataTransfer?.files;
+
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    const file = files[0];
+
+    const isCsv =
+      file.type === "text/csv" ||
+      file.name.toLowerCase().endsWith(".csv");
+
+    if (isCsv) {
       setSelectedFile(file);
     }
   };
@@ -41,8 +55,22 @@ function CsvUpload({ onUpload, isUploading = false }) {
       </div>
 
       <div
-        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-        onDragLeave={() => setDragging(false)}
+        onDragEnter={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setDragging(true);
+        }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          e.dataTransfer.dropEffect = "copy";
+          setDragging(true);
+        }}
+        onDragLeave={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setDragging(false);
+        }}
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
         className={`relative cursor-pointer rounded-xl border-2 border-dashed px-5 py-6 text-center transition ${

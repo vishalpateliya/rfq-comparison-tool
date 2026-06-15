@@ -32,7 +32,11 @@ class QuoteCreate(BaseModel):
 
 
 class QuoteUpdate(BaseModel):
-    supplier_name: str | None = None
+    supplier_name: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=255,
+    )
 
     unit_price: Decimal | None = Field(
         default=None,
@@ -40,7 +44,11 @@ class QuoteUpdate(BaseModel):
         decimal_places=2,
     )
 
-    currency: str | None = None
+    currency: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=10,
+    )
 
     lead_time: int | None = Field(
         default=None,

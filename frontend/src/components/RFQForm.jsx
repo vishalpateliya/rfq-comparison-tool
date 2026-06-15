@@ -42,8 +42,23 @@ function RFQForm({
 
   const validate = () => {
     const errs = {};
-    if (!formData.item_name.trim()) errs.item_name = "Item name is required";
-    if (!formData.quantity || Number(formData.quantity) < 1) errs.quantity = "Enter a valid quantity";
+
+    if (!formData.item_name.trim()) {
+      errs.item_name = "Item name is required";
+    }
+
+    if (!formData.specification.trim()) {
+      errs.specification = "Material / Specification is required";
+    }
+
+    if (!formData.quantity || Number(formData.quantity) < 1) {
+      errs.quantity = "Enter a valid quantity";
+    }
+
+    if (!formData.delivery_expectation) {
+      errs.delivery_expectation = "Delivery expectation is required";
+    }
+
     return errs;
   };
 
@@ -69,15 +84,23 @@ function RFQForm({
       </FormField>
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <FormField label="Material / Specification" hint="optional">
+        <FormField label="Material / Specification" required>
           <input
             name="specification"
             type="text"
             value={formData.specification}
             onChange={handleChange}
             placeholder="e.g. SS304"
-            className={inputClass}
+            className={`${inputClass} ${
+              errors.specification ? "border-red-300 bg-red-50" : ""
+            }`}
           />
+
+          {errors.specification && (
+            <p className="mt-1 text-xs text-red-500">
+              {errors.specification}
+            </p>
+          )}
         </FormField>
 
         <FormField label="Quantity" required>
@@ -94,14 +117,22 @@ function RFQForm({
         </FormField>
       </div>
 
-      <FormField label="Delivery Expectation" hint="optional">
+      <FormField label="Delivery Expectation" required>
         <input
           name="delivery_expectation"
           type="date"
           value={formData.delivery_expectation ?? ""}
           onChange={handleChange}
-          className={inputClass}
+          className={`${inputClass} ${
+            errors.delivery_expectation ? "border-red-300 bg-red-50" : ""
+          }`}
         />
+
+        {errors.delivery_expectation && (
+          <p className="mt-1 text-xs text-red-500">
+            {errors.delivery_expectation}
+          </p>
+        )}
       </FormField>
 
       <FormField label="Notes" hint="optional">

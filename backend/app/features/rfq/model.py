@@ -24,9 +24,9 @@ class RFQ(Base):
         nullable=False,
     )
 
-    specification: Mapped[str | None] = mapped_column(
+    specification: Mapped[str] = mapped_column(
         String(1000),
-        nullable=True,
+        nullable=False,
     )
 
     quantity: Mapped[int] = mapped_column(
@@ -34,9 +34,9 @@ class RFQ(Base):
         nullable=False,
     )
 
-    delivery_expectation: Mapped[date | None] = mapped_column(
+    delivery_expectation: Mapped[date] = mapped_column(
         Date,
-        nullable=True,
+        nullable=False,
     )
 
     notes: Mapped[str | None] = mapped_column(

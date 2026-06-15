@@ -11,21 +11,32 @@ class RFQCreate(BaseModel):
         max_length=255,
     )
 
-    specification: str | None = None
+    specification: str = Field(
+        min_length=1,
+        max_length=1000,
+    )
 
     quantity: int = Field(
         gt=0,
     )
 
-    delivery_expectation: date | None = None
+    delivery_expectation: date
 
     notes: str | None = None
 
 
 class RFQUpdate(BaseModel):
-    item_name: str | None = None
+    item_name: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=255,
+    )
 
-    specification: str | None = None
+    specification: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=1000,
+    )
 
     quantity: int | None = Field(
         default=None,
@@ -42,11 +53,11 @@ class RFQResponse(BaseModel):
 
     item_name: str
 
-    specification: str | None
+    specification: str
 
     quantity: int
 
-    delivery_expectation: date | None
+    delivery_expectation: date
 
     notes: str | None
 

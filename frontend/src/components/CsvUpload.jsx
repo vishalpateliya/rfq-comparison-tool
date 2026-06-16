@@ -1,13 +1,64 @@
 import { useRef, useState } from "react";
+import { toast } from "sonner";
+
+const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 MB
+
+const SUPPORTED_EXTENSIONS = [
+  ".csv",
+  ".pdf",
+];
 
 function CsvUpload({ onUpload, isUploading = false }) {
   const inputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [dragging, setDragging] = useState(false);
 
+  const validateFile = (file) => {
+    const filename = file.name.toLowerCase();
+
+    const isSupported = SUPPORTED_EXTENSIONS.some((extension) =>
+      filename.endsWith(extension)
+    );
+
+    if (!isSupported) {
+      toast.error(
+        "Unsupported file type. Please upload a CSV or PDF file."
+      );
+
+      return false;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(
+        "File size cannot exceed 2 MB."
+      );
+
+      return false;
+    }
+
+    return true;
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
-    setSelectedFile(file || null);
+
+    if (!file) {
+      setSelectedFile(null);
+
+      return;
+    }
+
+    if (!validateFile(file)) {
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
+
+      setSelectedFile(null);
+
+      return;
+    }
+
+    setSelectedFile(file);
   };
 
   const handleDrop = (e) => {
@@ -16,28 +67,34 @@ function CsvUpload({ onUpload, isUploading = false }) {
 
     setDragging(false);
 
-    const files = e.dataTransfer?.files;
+    const file =
+      e.dataTransfer.files?.[0];
 
-    if (!files || files.length === 0) {
+    if (!file) {
       return;
     }
 
-    const file = files[0];
-
-    const isCsv =
-      file.type === "text/csv" ||
-      file.name.toLowerCase().endsWith(".csv");
-
-    if (isCsv) {
-      setSelectedFile(file);
+    if (!validateFile(file)) {
+      return;
     }
+
+    setSelectedFile(file);
   };
 
   const handleUpload = async () => {
     if (!selectedFile || !onUpload) return;
-    await onUpload(selectedFile);
-    setSelectedFile(null);
-    if (inputRef.current) inputRef.current.value = "";
+
+    try {
+      await onUpload(selectedFile);
+
+      setSelectedFile(null);
+
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
+    } catch {
+      // Let the parent component handle the error toast.
+    }
   };
 
   return (
@@ -49,8 +106,8 @@ function CsvUpload({ onUpload, isUploading = false }) {
           </svg>
         </div>
         <div>
-          <h3 className="text-sm font-semibold text-slate-800">Import from CSV</h3>
-          <p className="text-xs text-slate-500 mt-0.5">Bulk-import supplier quotes with a CSV file</p>
+          <h3 className="text-sm font-semibold text-slate-800">Import Quotes</h3>
+          <p className="text-xs text-slate-500 mt-0.5">Bulk-import supplier quotes from a CSV or PDF document</p>
         </div>
       </div>
 
@@ -84,7 +141,7 @@ function CsvUpload({ onUpload, isUploading = false }) {
         <input
           ref={inputRef}
           type="file"
-          accept=".csv"
+          accept=".csv,.pdf"
           onChange={handleFileChange}
           className="hidden"
         />
@@ -107,7 +164,9 @@ function CsvUpload({ onUpload, isUploading = false }) {
             <p className="text-sm text-slate-500">
               <span className="font-medium text-indigo-600">Click to browse</span> or drag & drop
             </p>
-            <p className="text-xs text-slate-400 mt-1">CSV files only</p>
+            <p className="text-xs text-slate-400 mt-1">
+              CSV or PDF files (max 2 MB)
+            </p>
           </div>
         )}
       </div>

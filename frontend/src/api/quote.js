@@ -33,7 +33,7 @@ export const deleteQuote = async (quoteId) => {
 };
 
 /**
- * Import supplier quotes from a CSV file
+ * Import supplier quotes from a CSV file or a PDF
  */
 export const importQuotesFromCSV = async (rfqId, file) => {
   const formData = new FormData();
@@ -41,7 +41,7 @@ export const importQuotesFromCSV = async (rfqId, file) => {
   formData.append("file", file);
 
   const response = await api.post(
-    `/rfqs/${rfqId}/quotes/import-csv`,
+    `/rfqs/${rfqId}/quotes/import`,
     formData,
     {
       headers: {

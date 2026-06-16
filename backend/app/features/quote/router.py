@@ -2,11 +2,13 @@ from fastapi import File
 from fastapi import UploadFile
 
 from app.features.quote.csv_service import CSVImportService
+from app.features.quote.pdf_service import PDFImportService
 
 from typing import Annotated
 
 from fastapi import APIRouter
 from fastapi import Depends
+from fastapi import HTTPException
 from fastapi import Response
 from sqlalchemy.orm import Session
 
@@ -25,6 +27,8 @@ DBSession = Annotated[
     Session,
     Depends(get_db),
 ]
+
+MAX_FILE_SIZE = 2 * 1024 * 1024  # 2 MB
 
 
 def build_quote_response(
@@ -86,18 +90,42 @@ def create_quote(
 
 
 @router.post(
-    "/rfqs/{rfq_id}/quotes/import-csv",
-    status_code=200,
+    "/rfqs/{rfq_id}/quotes/import",
 )
-async def import_quotes_csv(
+async def import_quotes(
     rfq_id: int,
     db: DBSession,
     file: UploadFile = File(...),
 ):
-    return await CSVImportService.import_quotes(
-        db=db,
-        rfq_id=rfq_id,
-        file=file,
+    contents = await file.read()
+
+    if len(contents) > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=400,
+            detail="File size cannot exceed 2 MB.",
+        )
+
+    await file.seek(0)
+
+    filename = file.filename.lower()
+
+    if filename.endswith(".csv"):
+        return await CSVImportService.import_quotes(
+            db=db,
+            rfq_id=rfq_id,
+            file=file,
+        )
+
+    if filename.endswith(".pdf"):
+        return await PDFImportService.import_quotes(
+            db=db,
+            rfq_id=rfq_id,
+            file=file,
+        )
+
+    raise HTTPException(
+        status_code=400,
+        detail="Only CSV and PDF files are supported.",
     )
 
 

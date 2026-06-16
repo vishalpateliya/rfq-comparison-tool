@@ -58,6 +58,7 @@ async def test_import_quotes_partial_failure(db_session):
         item_name="Steel Bolt",
         specification="SS304",
         quantity=500,
+        delivery_expectation=date(2026, 9, 22),
     )
 
     db_session.add(rfq)
@@ -96,6 +97,7 @@ async def test_reject_non_csv_file(db_session):
         item_name="Steel Bolt",
         specification="SS304",
         quantity=500,
+        delivery_expectation=date(2026, 6, 20),
     )
 
     db_session.add(rfq)

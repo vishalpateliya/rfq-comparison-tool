@@ -34,6 +34,7 @@ def test_get_all_rfqs(db_session):
             item_name="Bolt",
             specification="SS304",
             quantity=500,
+            delivery_expectation=date(2026, 7, 15),
         ),
     )
 
@@ -43,6 +44,7 @@ def test_get_all_rfqs(db_session):
             item_name="Nut",
             specification="SS316",
             quantity=200,
+            delivery_expectation=date(2026, 7, 20),
         ),
     )
 
@@ -58,6 +60,7 @@ def test_get_rfq_by_id(db_session):
             item_name="Washer",
             specification="Steel",
             quantity=100,
+            delivery_expectation=date(2026, 7, 15),
         ),
     )
 
@@ -77,6 +80,7 @@ def test_update_rfq(db_session):
             item_name="Bolt",
             specification="SS304",
             quantity=500,
+            delivery_expectation=date(2026, 7, 15),
         ),
     )
 
@@ -100,6 +104,7 @@ def test_delete_rfq(db_session):
             item_name="Bolt",
             specification="SS304",
             quantity=500,
+            delivery_expectation=date(2026, 7, 15),
         ),
     )
 

@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 
 import pytest
@@ -14,6 +15,7 @@ def create_test_rfq(db_session):
         item_name="Steel Bolt",
         specification="SS304",
         quantity=500,
+        delivery_expectation=date(2026, 7, 15),
         notes="Test RFQ",
     )
 

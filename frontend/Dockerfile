@@ -1,20 +1,24 @@
-# Use the latest stable Node.js LTS image
-FROM node:22-alpine
+# ---------- Build Stage ----------
+FROM node:22-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package.json package-lock.json* ./
+COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+RUN npm ci
 
-# Copy application source
 COPY . .
 
-# Expose Vite development server port
-EXPOSE 5173
+RUN npm run build
 
-# Start the development server
-CMD ["npm", "run", "dev", "--", "--host"]
+
+# ---------- Production Stage ----------
+FROM nginx:1.29-alpine
+
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

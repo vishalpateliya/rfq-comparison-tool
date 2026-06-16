@@ -36,7 +36,7 @@ jobs:
 
       - name: Run Tests
         env:
-            DATABASE_URL: sqlite:///:memory:
+            DATABASE_URL: sqlite:///./test.db
         run: uv run pytest
 
   frontend:

@@ -3,11 +3,14 @@ from decimal import Decimal
 
 import pytest
 from fastapi import HTTPException
+from sqlalchemy import select
 
-from app.features.quote.service import QuoteService
+from app.features.quote.model import SupplierQuote
 from app.features.quote.schema import QuoteCreate
 from app.features.quote.schema import QuoteUpdate
+from app.features.quote.service import QuoteService
 from app.features.rfq.model import RFQ
+from app.features.rfq.service import RFQService
 
 
 def create_test_rfq(db_session):
@@ -172,3 +175,58 @@ def test_get_best_quote(db_session):
     assert best is not None
     assert best.supplier_name == "Supplier B"
     assert best.unit_price == Decimal("9.50")
+
+
+def test_get_best_quote_empty(db_session):
+    rfq = create_test_rfq(db_session)
+
+    best = QuoteService.get_best_quote(db=db_session, rfq_id=rfq.id)
+
+    assert best is None
+
+
+def test_create_quote_rfq_not_found(db_session):
+    with pytest.raises(HTTPException) as exc_info:
+        QuoteService.create(
+            db=db_session,
+            rfq_id=999,
+            payload=QuoteCreate(
+                supplier_name="ABC",
+                unit_price=Decimal("10.00"),
+                currency="USD",
+                lead_time=5,
+            ),
+        )
+
+    assert exc_info.value.status_code == 404
+
+
+def test_get_quotes_rfq_not_found(db_session):
+    with pytest.raises(HTTPException) as exc_info:
+        QuoteService.get_all_for_rfq(db=db_session, rfq_id=999)
+
+    assert exc_info.value.status_code == 404
+
+
+def test_delete_rfq_cascades_to_quotes(db_session):
+    rfq = create_test_rfq(db_session)
+    rfq_id = rfq.id
+
+    QuoteService.create(
+        db=db_session,
+        rfq_id=rfq_id,
+        payload=QuoteCreate(
+            supplier_name="ABC",
+            unit_price=Decimal("10.00"),
+            currency="USD",
+            lead_time=5,
+        ),
+    )
+
+    RFQService.delete(db=db_session, rfq_id=rfq_id)
+
+    remaining = db_session.scalars(
+        select(SupplierQuote).where(SupplierQuote.rfq_id == rfq_id)
+    ).all()
+
+    assert remaining == []

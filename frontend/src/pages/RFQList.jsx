@@ -11,6 +11,7 @@ import RFQForm from "../components/RFQForm";
 import EmptyState from "../components/EmptyState";
 import Loading from "../components/Loading";
 import RFQCard from "../components/RFQCard";
+import { Button } from "../components/ui";
 
 function RFQList() {
   const [rfqs, setRfqs] = useState([]);
@@ -23,6 +24,8 @@ function RFQList() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [selectedRFQ, setSelectedRFQ] = useState(null);
+
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchRFQs();
@@ -75,6 +78,8 @@ function RFQList() {
     }
 
     try {
+      setIsDeleting(true);
+
       await deleteRFQ(selectedRFQ.id);
 
       toast.success("RFQ deleted successfully.");
@@ -85,6 +90,8 @@ function RFQList() {
       await fetchRFQs();
     } catch (error) {
       toast.error(error.message);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -96,36 +103,50 @@ function RFQList() {
     <div className="space-y-8">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Request for Quotations
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold tracking-tight text-content sm:text-3xl">
+              Request for Quotations
+            </h1>
+            {rfqs.length > 0 && (
+              <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-sm font-semibold text-muted">
+                {rfqs.length}
+              </span>
+            )}
+          </div>
 
-          <p className="mt-2 text-gray-500">
-            Create RFQs and compare supplier quotes.
+          <p className="mt-2 text-muted">
+            Create RFQs and compare supplier quotes side by side.
           </p>
         </div>
 
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
-        >
-          + Create RFQ
-        </button>
+        <Button onClick={() => setShowCreateModal(true)}>
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14m-7-7h14" />
+          </svg>
+          Create RFQ
+        </Button>
       </div>
 
       {rfqs.length === 0 ? (
         <EmptyState
-          title="No RFQs found"
-          description="Create your first RFQ to start collecting supplier quotes."
+          title="No RFQs yet"
+          description="Create your first RFQ to start collecting and comparing supplier quotes."
+          action={
+            <Button onClick={() => setShowCreateModal(true)}>
+              Create your first RFQ
+            </Button>
+          }
         />
       ) : (
-        <div className="grid gap-6">
+        <div className="grid gap-4 sm:gap-5">
           {rfqs.map((rfq) => (
-            <RFQCard
-              key={rfq.id}
-              rfq={rfq}
-              onDelete={handleDeleteRFQ}
-            />
+            <RFQCard key={rfq.id} rfq={rfq} onDelete={handleDeleteRFQ} />
           ))}
         </div>
       )}
@@ -151,8 +172,9 @@ function RFQList() {
         }}
         onConfirm={confirmDeleteRFQ}
         title="Delete RFQ"
-        description={`Are you sure you want to delete "${selectedRFQ?.item_name}"?`}
+        description={`Are you sure you want to delete "${selectedRFQ?.item_name}"? This will also remove all of its supplier quotes.`}
         confirmText="Delete"
+        isLoading={isDeleting}
       />
     </div>
   );

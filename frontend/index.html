@@ -13,9 +13,26 @@
     />
 
     <title>Supplier Quote Comparison Tool</title>
+
+    <!--
+      Apply the persisted theme before first paint to avoid a flash of the
+      wrong color scheme. Mirrors the logic in src/theme/ThemeProvider.jsx.
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("theme");
+          var prefersDark = window.matchMedia(
+            "(prefers-color-scheme: dark)"
+          ).matches;
+          var isDark = stored ? stored === "dark" : prefersDark;
+          document.documentElement.classList.toggle("dark", isDark);
+        } catch (e) {}
+      })();
+    </script>
   </head>
 
-  <body class="bg-gray-50">
+  <body>
     <div id="root"></div>
 
     <script type="module" src="/src/main.jsx"></script>

@@ -33,9 +33,9 @@ export const deleteQuote = async (quoteId) => {
 };
 
 /**
- * Import supplier quotes from a CSV file or a PDF
+ * Import supplier quotes from a CSV or PDF file
  */
-export const importQuotesFromCSV = async (rfqId, file) => {
+export const importQuotes = async (rfqId, file) => {
   const formData = new FormData();
 
   formData.append("file", file);

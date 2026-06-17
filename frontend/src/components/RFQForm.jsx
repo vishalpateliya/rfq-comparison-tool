@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import { Button, FormField, inputClass } from "./ui";
+
 const initialFormState = {
   item_name: "",
   specification: "",
@@ -8,21 +10,7 @@ const initialFormState = {
   notes: "",
 };
 
-function FormField({ label, hint, required, children }) {
-  return (
-    <div>
-      <label className="block text-sm font-medium text-slate-700 mb-1.5">
-        {label}
-        {required && <span className="text-red-500 ml-0.5">*</span>}
-        {hint && <span className="ml-2 text-xs font-normal text-slate-400">{hint}</span>}
-      </label>
-      {children}
-    </div>
-  );
-}
-
-const inputClass =
-  "w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition";
+const errorClass = "border-danger/60 bg-danger-soft/40";
 
 function RFQForm({
   initialValues = {},
@@ -31,7 +19,10 @@ function RFQForm({
   submitLabel = "Save",
   isSubmitting = false,
 }) {
-  const [formData, setFormData] = useState({ ...initialFormState, ...initialValues });
+  const [formData, setFormData] = useState({
+    ...initialFormState,
+    ...initialValues,
+  });
   const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
@@ -65,26 +56,32 @@ function RFQForm({
   const handleSubmit = (e) => {
     e.preventDefault();
     const errs = validate();
-    if (Object.keys(errs).length) { setErrors(errs); return; }
+    if (Object.keys(errs).length) {
+      setErrors(errs);
+      return;
+    }
     onSubmit({ ...formData, quantity: Number(formData.quantity) });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      <FormField label="Item Name" required>
+      <FormField label="Item Name" required error={errors.item_name}>
         <input
           name="item_name"
           type="text"
           value={formData.item_name}
           onChange={handleChange}
           placeholder="e.g. Steel Bolt M10"
-          className={`${inputClass} ${errors.item_name ? "border-red-300 bg-red-50" : ""}`}
+          className={`${inputClass} ${errors.item_name ? errorClass : ""}`}
         />
-        {errors.item_name && <p className="mt-1 text-xs text-red-500">{errors.item_name}</p>}
       </FormField>
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <FormField label="Material / Specification" required>
+        <FormField
+          label="Material / Specification"
+          required
+          error={errors.specification}
+        >
           <input
             name="specification"
             type="text"
@@ -92,18 +89,12 @@ function RFQForm({
             onChange={handleChange}
             placeholder="e.g. SS304"
             className={`${inputClass} ${
-              errors.specification ? "border-red-300 bg-red-50" : ""
+              errors.specification ? errorClass : ""
             }`}
           />
-
-          {errors.specification && (
-            <p className="mt-1 text-xs text-red-500">
-              {errors.specification}
-            </p>
-          )}
         </FormField>
 
-        <FormField label="Quantity" required>
+        <FormField label="Quantity" required error={errors.quantity}>
           <input
             name="quantity"
             type="number"
@@ -111,28 +102,25 @@ function RFQForm({
             value={formData.quantity}
             onChange={handleChange}
             placeholder="e.g. 500"
-            className={`${inputClass} ${errors.quantity ? "border-red-300 bg-red-50" : ""}`}
+            className={`${inputClass} ${errors.quantity ? errorClass : ""}`}
           />
-          {errors.quantity && <p className="mt-1 text-xs text-red-500">{errors.quantity}</p>}
         </FormField>
       </div>
 
-      <FormField label="Delivery Expectation" required>
+      <FormField
+        label="Delivery Expectation"
+        required
+        error={errors.delivery_expectation}
+      >
         <input
           name="delivery_expectation"
           type="date"
           value={formData.delivery_expectation ?? ""}
           onChange={handleChange}
           className={`${inputClass} ${
-            errors.delivery_expectation ? "border-red-300 bg-red-50" : ""
+            errors.delivery_expectation ? errorClass : ""
           }`}
         />
-
-        {errors.delivery_expectation && (
-          <p className="mt-1 text-xs text-red-500">
-            {errors.delivery_expectation}
-          </p>
-        )}
       </FormField>
 
       <FormField label="Notes" hint="optional">
@@ -147,25 +135,14 @@ function RFQForm({
       </FormField>
 
       <div className="flex items-center justify-end gap-3 pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-800 transition"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          {isSubmitting ? (
-            <>
-              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Saving…
-            </>
-          ) : submitLabel}
-        </button>
+        {onCancel && (
+          <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+            Cancel
+          </Button>
+        )}
+        <Button type="submit" loading={isSubmitting} loadingText="Saving…">
+          {submitLabel}
+        </Button>
       </div>
     </form>
   );

@@ -1,3 +1,4 @@
+import base64
 from typing import TypedDict
 
 from langchain_core.messages import HumanMessage
@@ -7,42 +8,35 @@ from langgraph.graph import END
 from langgraph.graph import START
 from langgraph.graph import StateGraph
 
-import base64
+from app.features.quote.prompts import QUOTE_EXTRACTION_SYSTEM_PROMPT
+from app.features.quote.tools import ExtractedQuotes
 
-from app.features.quote.prompts import (
-    QUOTE_EXTRACTION_SYSTEM_PROMPT,
-)
-from app.features.quote.tools import (
-    ExtractedQuotes,
-)
+_llm = None
+
+
+def _get_llm():
+    global _llm
+    if _llm is None:
+        _llm = ChatOpenAI(
+            model="gpt-4.1-mini",
+            temperature=0,
+        ).with_structured_output(ExtractedQuotes)
+    return _llm
 
 
 class QuoteExtractionState(TypedDict):
     pdf_bytes: bytes
-
     extracted_quotes: ExtractedQuotes | None
 
 
-def extract_quotes(
+async def extract_quotes(
     state: QuoteExtractionState,
 ) -> QuoteExtractionState:
-    llm = ChatOpenAI(
-        model="gpt-4.1-mini",
-        temperature=0,
-    ).with_structured_output(
-        ExtractedQuotes,
-    )
+    encoded_pdf = base64.b64encode(state["pdf_bytes"]).decode("utf-8")
 
-    
-    encoded_pdf = base64.b64encode(
-        state["pdf_bytes"]
-    ).decode("utf-8")
-
-    result = llm.invoke(
+    result = await _get_llm().ainvoke(
         [
-            SystemMessage(
-                content=QUOTE_EXTRACTION_SYSTEM_PROMPT,
-            ),
+            SystemMessage(content=QUOTE_EXTRACTION_SYSTEM_PROMPT),
             HumanMessage(
                 content=[
                     {
@@ -62,23 +56,9 @@ def extract_quotes(
     }
 
 
-builder = StateGraph(
-    QuoteExtractionState,
-)
-
-builder.add_node(
-    "extract_quotes",
-    extract_quotes,
-)
-
-builder.add_edge(
-    START,
-    "extract_quotes",
-)
-
-builder.add_edge(
-    "extract_quotes",
-    END,
-)
+builder = StateGraph(QuoteExtractionState)
+builder.add_node("extract_quotes", extract_quotes)
+builder.add_edge(START, "extract_quotes")
+builder.add_edge("extract_quotes", END)
 
 quote_extraction_graph = builder.compile()

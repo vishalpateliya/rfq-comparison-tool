@@ -2,19 +2,18 @@ FROM python:3.13-slim
 
 WORKDIR /app
 
-# Install uv
 RUN pip install --no-cache-dir uv
 
-# Copy dependency files first for better caching
-COPY pyproject.toml .
-COPY uv.lock* .
+# Copy lockfile first for better layer caching
+COPY pyproject.toml uv.lock ./
 
-# Install dependencies
-RUN uv pip install --system .
+# Install only production dependencies, honoring the lockfile
+RUN uv sync --frozen --no-dev --no-install-project
 
-# Copy project
+# Copy source and install the project itself
 COPY . .
+RUN uv sync --frozen --no-dev
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

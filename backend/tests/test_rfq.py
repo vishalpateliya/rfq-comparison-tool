@@ -51,6 +51,9 @@ def test_get_all_rfqs(db_session):
     rfqs = RFQService.get_all(db_session)
 
     assert len(rfqs) == 2
+    # Most recently created RFQ is returned first
+    assert rfqs[0].item_name == "Nut"
+    assert rfqs[1].item_name == "Bolt"
 
 
 def test_get_rfq_by_id(db_session):
@@ -118,3 +121,10 @@ def test_delete_rfq(db_session):
             db=db_session,
             rfq_id=created.id,
         )
+
+
+def test_get_rfq_not_found(db_session):
+    with pytest.raises(HTTPException) as exc_info:
+        RFQService.get_by_id(db=db_session, rfq_id=999)
+
+    assert exc_info.value.status_code == 404

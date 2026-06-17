@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 
 import { toast } from "sonner";
 
@@ -8,7 +8,7 @@ import {
   createQuote,
   deleteQuote,
   getQuotesByRFQ,
-  importQuotesFromCSV,
+  importQuotes,
   updateQuote,
 } from "../api/quote";
 
@@ -18,7 +18,8 @@ import ConfirmModal from "../components/ConfirmModal";
 import Loading from "../components/Loading";
 import QuoteForm from "../components/QuoteForm";
 import QuoteTable from "../components/QuoteTable";
-import CsvUpload from "../components/CsvUpload";
+import FileImport from "../components/FileImport";
+import { Badge, Button } from "../components/ui";
 
 function RFQDetails() {
   const { id } = useParams();
@@ -41,17 +42,7 @@ function RFQDetails() {
 
   const [selectedQuote, setSelectedQuote] = useState(null);
 
-  const bestQuoteId = useMemo(() => {
-    if (quotes.length === 0) {
-      return null;
-    }
-
-    return quotes.reduce((best, current) =>
-      Number(current.total_price) < Number(best.total_price)
-        ? current
-        : best
-    ).id;
-  }, [quotes]);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -117,6 +108,8 @@ function RFQDetails() {
     }
 
     try {
+      setIsDeleting(true);
+
       await deleteQuote(selectedQuote.id);
 
       toast.success("Supplier quote deleted successfully.");
@@ -127,6 +120,8 @@ function RFQDetails() {
       await loadData();
     } catch (error) {
       toast.error(error.message);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -134,7 +129,7 @@ function RFQDetails() {
     try {
       setUploadingCsv(true);
 
-      const result = await importQuotesFromCSV(id, file);
+      const result = await importQuotes(id, file);
 
       await loadData();
 
@@ -158,53 +153,86 @@ function RFQDetails() {
     return <Loading message="Loading RFQ..." />;
   }
 
+  const formattedDelivery = rfq.delivery_expectation
+    ? new Date(rfq.delivery_expectation).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "—";
+
   return (
     <div className="space-y-8">
-      <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col justify-between gap-4 md:flex-row">
-          <div className="space-y-3">
-            <h1 className="text-3xl font-bold text-gray-900">
-              {rfq.item_name}
-            </h1>
+      <Link
+        to="/"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted transition hover:text-content"
+      >
+        <svg
+          className="h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to RFQs
+      </Link>
 
-            <p className="text-gray-600">
-              <span className="font-medium">Specification:</span>{" "}
-              {rfq.specification || "-"}
-            </p>
+      <section className="overflow-hidden rounded-2xl border border-border-default bg-surface shadow-card">
+        <div className="border-b border-border-default bg-surface-2/50 px-6 py-5">
+          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h1 className="text-2xl font-bold tracking-tight text-content">
+                  {rfq.item_name}
+                </h1>
+                {rfq.specification && (
+                  <Badge variant="primary">{rfq.specification}</Badge>
+                )}
+              </div>
+              <p className="text-sm text-muted">
+                Compare supplier quotes for this request below.
+              </p>
+            </div>
 
-            <p className="text-gray-600">
-              <span className="font-medium">Quantity:</span>{" "}
-              {rfq.quantity}
-            </p>
-
-            <p className="text-gray-600">
-              <span className="font-medium">
-                Delivery Expectation:
-              </span>{" "}
-              {rfq.delivery_expectation || "-"}
-            </p>
-
-            <p className="text-gray-600">
-              <span className="font-medium">Notes:</span>{" "}
-              {rfq.notes || "-"}
-            </p>
-          </div>
-
-          <div className="flex h-fit gap-3">
-            <button
+            <Button
+              className="shrink-0"
               onClick={() => {
                 setEditingQuote(null);
                 setShowQuoteForm(true);
               }}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
-              + Add Quote
-            </button>
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 5v14m-7-7h14"
+                />
+              </svg>
+              Add Quote
+            </Button>
           </div>
         </div>
+
+        <dl className="grid grid-cols-2 divide-x divide-y divide-border-default sm:grid-cols-4 sm:divide-y-0">
+          <DetailItem label="Quantity" value={rfq.quantity?.toLocaleString()} />
+          <DetailItem label="Delivery" value={formattedDelivery} />
+          <DetailItem
+            label="Specification"
+            value={rfq.specification || "—"}
+          />
+          <DetailItem label="Notes" value={rfq.notes || "—"} />
+        </dl>
       </section>
 
-      <CsvUpload
+      <FileImport
         onUpload={handleCsvUpload}
         isUploading={uploadingCsv}
       />
@@ -245,19 +273,28 @@ function RFQDetails() {
         title="Delete Supplier Quote"
         description={`Are you sure you want to delete the quote from "${selectedQuote?.supplier_name}"?`}
         confirmText="Delete"
+        isLoading={isDeleting}
       />
 
       <section className="space-y-4">
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-900">
-            Supplier Quotes
-          </h2>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight text-content">
+              Supplier Quotes
+            </h2>
 
-          <p className="mt-1 text-sm text-gray-500">
-            {bestQuoteId
-              ? "The lowest total price is highlighted."
-              : "No supplier quotes available yet."}
-          </p>
+            <p className="mt-1 text-sm text-muted">
+              {quotes.length > 0
+                ? "The lowest total price is highlighted."
+                : "No supplier quotes available yet."}
+            </p>
+          </div>
+
+          {quotes.length > 0 && (
+            <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-sm font-semibold text-muted">
+              {quotes.length}
+            </span>
+          )}
         </div>
 
         <QuoteTable
@@ -266,6 +303,17 @@ function RFQDetails() {
           onDelete={handleDeleteQuote}
         />
       </section>
+    </div>
+  );
+}
+
+function DetailItem({ label, value }) {
+  return (
+    <div className="px-6 py-4">
+      <dt className="text-xs font-medium uppercase tracking-wider text-subtle">
+        {label}
+      </dt>
+      <dd className="mt-1 truncate text-sm font-medium text-content">{value}</dd>
     </div>
   );
 }

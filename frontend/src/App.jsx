@@ -8,10 +8,10 @@ import RFQDetails from "./pages/RFQDetails";
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="theme-transition flex min-h-screen flex-col text-content">
       <Header />
 
-      <main className="mx-auto max-w-7xl px-6 py-8">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-5 py-8 sm:px-6 lg:py-10">
         <Routes>
           <Route path="/" element={<RFQList />} />
 
@@ -22,6 +22,13 @@ function App() {
           <Route path="*" element={<Navigate replace to="/" />} />
         </Routes>
       </main>
+
+      <footer className="border-t border-border-default/70">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-6 py-5 text-xs text-subtle sm:flex-row">
+          <span>RFQ Comparison Tool</span>
+          <span>Compare supplier quotes with confidence.</span>
+        </div>
+      </footer>
     </div>
   );
 }

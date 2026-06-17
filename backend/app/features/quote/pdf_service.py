@@ -55,30 +55,14 @@ class PDFImportService:
 
         for extracted in extracted_quotes.quotes:
             try:
-                try:
-                    payload = QuoteCreate(
-                        **extracted.model_dump(),
-                    )
-                except Exception as exc:
-                    failed += 1
-
-                    errors.append(
-                        {
-                            "supplier": extracted.supplier_name,
-                            "error": str(exc),
-                        }
-                    )
-
-                    continue
+                payload = QuoteCreate(**extracted.model_dump())
 
                 quote = SupplierQuote(
                     rfq_id=rfq_id,
                     **payload.model_dump(),
                 )
 
-                db.add(
-                    quote,
-                )
+                db.add(quote)
 
                 imported += 1
 
@@ -86,7 +70,10 @@ class PDFImportService:
                 failed += 1
 
                 errors.append(
-                    str(exc),
+                    {
+                        "supplier": extracted.supplier_name,
+                        "error": str(exc),
+                    }
                 )
 
         db.commit()

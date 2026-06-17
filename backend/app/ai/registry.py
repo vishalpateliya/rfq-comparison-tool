@@ -8,11 +8,19 @@ module directly.
 
 from collections.abc import Callable
 
-from app.ai.agents.rfq_assistant import answer_question
+from app.ai.agents.procurement_assistant import (
+    answer_question as procurement_answer_question,
+)
+from app.ai.agents.procurement_orchestrator import run as orchestrator_run
+from app.ai.agents.rfq_assistant import answer_question as rfq_answer_question
+from app.ai.agents.supplier_mailer import draft_email as supplier_draft_email
 
 # name -> agent entry point (callable)
 AGENTS: dict[str, Callable] = {
-    "rfq_assistant": answer_question,
+    "rfq_assistant": rfq_answer_question,
+    "procurement_assistant": procurement_answer_question,
+    "procurement_orchestrator": orchestrator_run,
+    "supplier_mailer": supplier_draft_email,
 }
 
 

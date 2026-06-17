@@ -32,6 +32,13 @@ class BadRequestError(AppError):
     detail = "Bad request"
 
 
+class ExternalServiceError(AppError):
+    """An upstream dependency (e.g. the email provider) failed or is unconfigured."""
+
+    status_code = 502
+    detail = "Upstream service error"
+
+
 def register_exception_handlers(app: FastAPI) -> None:
     """Wire domain errors (and a catch-all) to JSON responses."""
 

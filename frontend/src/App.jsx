@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import Header from "@/shared/layout/Header";
+import ChatWidget from "@/features/chat/components/ChatWidget";
 
 import RFQListPage from "@/features/rfq/pages/RFQListPage";
 import CreateRFQPage from "@/features/rfq/pages/CreateRFQPage";
@@ -29,6 +30,8 @@ function App() {
           <span>Compare supplier quotes with confidence.</span>
         </div>
       </footer>
+
+      <ChatWidget />
     </div>
   );
 }

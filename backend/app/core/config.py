@@ -12,6 +12,11 @@ class Settings(BaseSettings):
 
     OPENAI_API_KEY: str = ""
 
+    # Resend transactional email (used by the supplier-mail agent). When the key
+    # is unset the mailer refuses to send and surfaces a clear error.
+    RESEND_API_KEY: str = ""
+    MAIL_FROM: str = "Procurement Assistant <onboarding@resend.dev>"
+
     # NoDecode disables pydantic-settings' default JSON decoding for this
     # complex field, so the comma-separated .env value reaches the validator
     # below as a raw string instead of failing a json.loads() parse.

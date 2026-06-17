@@ -8,6 +8,8 @@ import cleanly without an ``OPENAI_API_KEY``.
 
 from langchain_openai import ChatOpenAI
 
+from app.core.config import settings
+
 DEFAULT_MODEL = "gpt-4.1-mini"
 
 
@@ -18,7 +20,14 @@ def get_llm(
 ):
     """Build a chat model, optionally bound to a structured-output schema."""
 
-    llm = ChatOpenAI(model=model, temperature=temperature)
+    # The key lives in our Settings (loaded from .env); pass it explicitly since
+    # langchain otherwise only reads os.environ. Fall back to None so an unset
+    # key surfaces langchain's clear "missing credentials" error at call time.
+    llm = ChatOpenAI(
+        model=model,
+        temperature=temperature,
+        api_key=settings.OPENAI_API_KEY or None,
+    )
 
     if structured_output is not None:
         return llm.with_structured_output(structured_output)

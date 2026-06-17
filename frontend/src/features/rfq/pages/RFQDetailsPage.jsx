@@ -19,7 +19,6 @@ import { useQuotes } from "@/features/quote/hooks";
 import QuoteForm from "@/features/quote/components/QuoteForm";
 import QuoteTable from "@/features/quote/components/QuoteTable";
 import FileImport from "@/features/quote/components/FileImport";
-import ChatPanel from "@/features/chat/components/ChatPanel";
 
 import { useRFQ } from "../hooks";
 
@@ -256,8 +255,6 @@ function RFQDetailsPage() {
           onDelete={handleDeleteQuote}
         />
       </section>
-
-      <ChatPanel rfqId={id} />
     </div>
   );
 }

@@ -1,14 +1,15 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.core.database import Base
 from app.core.database import engine
+from app.core.exceptions import register_exception_handlers
 from app.features.rfq.router import router as rfq_router
 from app.features.quote.router import router as quote_router
+from app.features.chat.router import router as chat_router
 
 
 @asynccontextmanager
@@ -31,16 +32,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-@app.exception_handler(Exception)
-async def unhandled_exception_handler(_request: Request, exc: Exception):
-    return JSONResponse(
-        status_code=500,
-        content={"detail": str(exc)},
-    )
+register_exception_handlers(app)
 
 app.include_router(rfq_router)
 app.include_router(quote_router)
+app.include_router(chat_router)
 
 
 @app.get("/health")

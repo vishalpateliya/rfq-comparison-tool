@@ -1,8 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from fastapi import HTTPException
-
+from app.core.exceptions import NotFoundError
 from app.features.rfq.model import RFQ
 from app.features.rfq.schema import RFQCreate
 from app.features.rfq.schema import RFQUpdate
@@ -22,10 +21,7 @@ class RFQService:
         rfq = db.get(RFQ, rfq_id)
 
         if rfq is None:
-            raise HTTPException(
-                status_code=404,
-                detail="RFQ not found",
-            )
+            raise NotFoundError("RFQ not found")
 
         return rfq
 

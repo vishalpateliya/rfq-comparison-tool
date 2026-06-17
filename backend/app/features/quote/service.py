@@ -1,8 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from fastapi import HTTPException
-
+from app.core.exceptions import NotFoundError
 from app.features.quote.model import SupplierQuote
 from app.features.quote.schema import QuoteCreate
 from app.features.quote.schema import QuoteUpdate
@@ -18,10 +17,7 @@ class QuoteService:
         rfq = db.get(RFQ, rfq_id)
 
         if rfq is None:
-            raise HTTPException(
-                status_code=404,
-                detail="RFQ not found",
-            )
+            raise NotFoundError("RFQ not found")
 
         stmt = (
             select(SupplierQuote)
@@ -39,10 +35,7 @@ class QuoteService:
         quote = db.get(SupplierQuote, quote_id)
 
         if quote is None:
-            raise HTTPException(
-                status_code=404,
-                detail="Quote not found",
-            )
+            raise NotFoundError("Quote not found")
 
         return quote
 
@@ -55,10 +48,7 @@ class QuoteService:
         rfq = db.get(RFQ, rfq_id)
 
         if rfq is None:
-            raise HTTPException(
-                status_code=404,
-                detail="RFQ not found",
-            )
+            raise NotFoundError("RFQ not found")
 
         quote = SupplierQuote(
             rfq_id=rfq_id,
@@ -123,10 +113,7 @@ class QuoteService:
         rfq = db.get(RFQ, rfq_id)
 
         if rfq is None:
-            raise HTTPException(
-                status_code=404,
-                detail="RFQ not found",
-            )
+            raise NotFoundError("RFQ not found")
 
         stmt = (
             select(SupplierQuote)

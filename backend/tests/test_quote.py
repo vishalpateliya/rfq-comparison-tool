@@ -2,9 +2,9 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
-from fastapi import HTTPException
 from sqlalchemy import select
 
+from app.core.exceptions import NotFoundError
 from app.features.quote.model import SupplierQuote
 from app.features.quote.schema import QuoteCreate
 from app.features.quote.schema import QuoteUpdate
@@ -135,7 +135,7 @@ def test_delete_quote(db_session):
         quote_id=quote.id,
     )
 
-    with pytest.raises(HTTPException):
+    with pytest.raises(NotFoundError):
         QuoteService.get_by_id(
             db=db_session,
             quote_id=quote.id,
@@ -186,7 +186,7 @@ def test_get_best_quote_empty(db_session):
 
 
 def test_create_quote_rfq_not_found(db_session):
-    with pytest.raises(HTTPException) as exc_info:
+    with pytest.raises(NotFoundError) as exc_info:
         QuoteService.create(
             db=db_session,
             rfq_id=999,
@@ -202,7 +202,7 @@ def test_create_quote_rfq_not_found(db_session):
 
 
 def test_get_quotes_rfq_not_found(db_session):
-    with pytest.raises(HTTPException) as exc_info:
+    with pytest.raises(NotFoundError) as exc_info:
         QuoteService.get_all_for_rfq(db=db_session, rfq_id=999)
 
     assert exc_info.value.status_code == 404

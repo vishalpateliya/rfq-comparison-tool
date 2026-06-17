@@ -1,10 +1,10 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
-import Header from "./components/Header";
+import Header from "@/shared/layout/Header";
 
-import RFQList from "./pages/RFQList";
-import CreateRFQ from "./pages/CreateRFQ";
-import RFQDetails from "./pages/RFQDetails";
+import RFQListPage from "@/features/rfq/pages/RFQListPage";
+import CreateRFQPage from "@/features/rfq/pages/CreateRFQPage";
+import RFQDetailsPage from "@/features/rfq/pages/RFQDetailsPage";
 
 function App() {
   return (
@@ -13,11 +13,11 @@ function App() {
 
       <main className="mx-auto w-full max-w-7xl flex-1 px-5 py-8 sm:px-6 lg:py-10">
         <Routes>
-          <Route path="/" element={<RFQList />} />
+          <Route path="/" element={<RFQListPage />} />
 
-          <Route path="/rfqs/new" element={<CreateRFQ />} />
+          <Route path="/rfqs/new" element={<CreateRFQPage />} />
 
-          <Route path="/rfqs/:id" element={<RFQDetails />} />
+          <Route path="/rfqs/:id" element={<RFQDetailsPage />} />
 
           <Route path="*" element={<Navigate replace to="/" />} />
         </Routes>

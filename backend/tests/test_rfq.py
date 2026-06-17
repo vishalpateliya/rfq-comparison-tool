@@ -1,8 +1,8 @@
 from datetime import date
 
 import pytest
-from fastapi import HTTPException
 
+from app.core.exceptions import NotFoundError
 from app.features.rfq.schema import RFQCreate
 from app.features.rfq.schema import RFQUpdate
 from app.features.rfq.service import RFQService
@@ -116,7 +116,7 @@ def test_delete_rfq(db_session):
         rfq_id=created.id,
     )
 
-    with pytest.raises(HTTPException):
+    with pytest.raises(NotFoundError):
         RFQService.get_by_id(
             db=db_session,
             rfq_id=created.id,
@@ -124,7 +124,7 @@ def test_delete_rfq(db_session):
 
 
 def test_get_rfq_not_found(db_session):
-    with pytest.raises(HTTPException) as exc_info:
+    with pytest.raises(NotFoundError) as exc_info:
         RFQService.get_by_id(db=db_session, rfq_id=999)
 
     assert exc_info.value.status_code == 404

@@ -5,7 +5,7 @@ from io import BytesIO
 import pytest
 from fastapi import UploadFile
 
-from app.features.quote.csv_service import CSVImportService
+from app.features.quote.importers import CSVImportService
 from app.features.rfq.model import RFQ
 
 

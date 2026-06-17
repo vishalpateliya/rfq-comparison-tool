@@ -1,11 +1,7 @@
-from typing import Annotated
-
 from fastapi import APIRouter
-from fastapi import Depends
 from fastapi import Response
-from sqlalchemy.orm import Session
 
-from app.core.database import get_db
+from app.core.dependencies import DBSession
 from app.features.rfq.schema import RFQCreate
 from app.features.rfq.schema import RFQResponse
 from app.features.rfq.schema import RFQUpdate
@@ -15,11 +11,6 @@ router = APIRouter(
     prefix="/rfqs",
     tags=["RFQs"],
 )
-
-DBSession = Annotated[
-    Session,
-    Depends(get_db),
-]
 
 
 @router.get(
